@@ -15,29 +15,29 @@ const Navbar = () => {
     return (
         <nav className="bg-primary p-4 text-white">
             <div className="container mx-auto flex justify-between items-center">
-                <Link href="/">
-                    <span className="text-2xl font-bold">Task App</span>
-                </Link>
+                {/* <Link href="/"> */}
+                <span className="text-2xl font-bold">Task App</span>
+                {/* </Link> */}
                 <div>
                     {user ? (
                         <>
-                            <Link href="/tasks">
+                            {/* <Link href="/tasks">
                                 <span className="mr-4">Mis Tareas</span>
-                            </Link>
+                            </Link> */}
                             <button
                                 onClick={handleLogout}
-                                className="px-4 py-2 bg-red-500 text-white rounded-md"
+                                className="px-4 py-2 bg-red-500 cursor-pointer hover:bg-red-700 transition-all duration-200 text-white rounded-md"
                             >
-                                Logout
+                                Cerrar sesión
                             </button>
                         </>
                     ) : (
                         <>
                             <Link href="/login">
-                                <span className="mr-4">Login</span>
+                                <span className="px-6 py-3 bg-primary text-white cursor-pointer transition-all duration-200 rounded-md bg-orange-600 hover:bg-orange-700">Iniciar sesión</span>
                             </Link>
                             <Link href="/register">
-                                <span className="mr-4">Register</span>
+                                <span className="px-6 py-3 bg-gray-300 text-black cursor-pointer transition-all duration-200 hover:text-white rounded-md hover:bg-gray-400 ml-4">Registrarse</span>
                             </Link>
                         </>
                     )}

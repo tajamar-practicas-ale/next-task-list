@@ -4,6 +4,7 @@ import { getTasksApi, createTaskApi } from '../utils/api';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 import { useRouter } from 'next/router';
+import Cookie from 'js-cookie';
 
 const Tasks = ({ tasks }) => {
     const { user } = useAuth();
@@ -16,7 +17,11 @@ const Tasks = ({ tasks }) => {
 
     const handleAddTask = async (newTask) => {
         try {
-            const task = await createTaskApi(newTask.title, newTask.description);
+            const token = Cookie.get('token');  // Obtener el token desde las cookies
+            if (!token) {
+                throw new Error('Token no encontrado');
+            }
+            const task = await createTaskApi(newTask.title, newTask.description, token); // Pasar el token
             setTaskList([...taskList, task]);
         } catch (error) {
             console.error('Error al crear tarea:', error);
@@ -44,7 +49,7 @@ export async function getServerSideProps(context) {
     }
 
     try {
-        const tasks = await getTasksApi();  // Obtener tareas del servidor
+        const tasks = await getTasksApi(token);  // Obtener tareas del servidor
         console.log('Tareas obtenidas en el servidor:', tasks);  // Ver tareas obtenidas en el servidor
 
         if (tasks.length === 0) {

@@ -17,15 +17,15 @@ const Home = () => {
                 <div>
                     <button
                         onClick={() => router.push('/login')}
-                        className="px-6 py-3 bg-primary text-white rounded-md hover:bg-orange-700"
+                        className="px-6 py-3 bg-primary text-white cursor-pointer transition-all duration-200 rounded-md bg-orange-600 hover:bg-orange-700"
                     >
-                        Login
+                        Iniciar sesión
                     </button>
                     <button
                         onClick={() => router.push('/register')}
-                        className="px-6 py-3 bg-gray-300 text-black rounded-md hover:bg-gray-400 ml-4"
+                        className="px-6 py-3 bg-gray-300 text-black cursor-pointer transition-all duration-200 hover:text-white rounded-md hover:bg-gray-400 ml-4"
                     >
-                        Register
+                        Registrarse
                     </button>
                 </div>
             </div>

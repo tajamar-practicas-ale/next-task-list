@@ -2,8 +2,7 @@ import Cookie from 'js-cookie';
 
 const API_URL = 'http://localhost:5000/api';
 
-export const fetchApi = async (url, method = 'GET', body = null) => {
-    const token = Cookie.get('token');
+export const fetchApi = async (url, method = 'GET', body = null, token = null) => {
 
     const headers = {
         'Content-Type': 'application/json',
@@ -28,7 +27,6 @@ export const fetchApi = async (url, method = 'GET', body = null) => {
 
 export const loginApi = async (username, password) => {
     const res = await fetchApi('/login', 'POST', { username, password });
-    Cookie.set('token', res.token, { expires: 1 / 24 });  // Cookie con token, expira en 1 hora
     return res.token;
 };
 
@@ -37,10 +35,10 @@ export const registerApi = async (username, password) => {
     return res.message;
 };
 
-export const getTasksApi = async () => {
-    const token = Cookie.get('token'); // Obtener el token de las cookies
+export const getTasksApi = async (passedToken) => {
+    const token = passedToken || Cookie.get('token'); // Obtener el token de las cookies
     try {
-        const res = await fetchApi('/tasks');  // Verifica que la llamada sea correcta
+        const res = await fetchApi('/tasks', 'GET', null, token);  // Verifica que la llamada sea correcta
         console.log('Tareas obtenidas desde la API:', res);  // Ver respuesta completa
 
         if (!Array.isArray(res)) {
@@ -54,6 +52,28 @@ export const getTasksApi = async () => {
     }
 };
 
-export const createTaskApi = async (title, description) => {
-    return fetchApi('/tasks', 'POST', { title, description });
+export const createTaskApi = async (title, description, token) => {
+    if (!token) {
+        throw new Error('No token provided');
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/tasks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // Pasa el token en la cabecera
+            },
+            body: JSON.stringify({ title, description })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error en la solicitud');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error al crear tarea:', error);
+        throw error;
+    }
 };

@@ -40,9 +40,9 @@ const Login = () => {
                 />
                 <button
                     type="submit"
-                    className="w-full py-2 bg-primary text-white rounded-md hover:bg-orange-700"
+                    className="w-full py-2 bg-primary text-white rounded-md cursor-pointer transition-all duration-200 bg-orange-500 hover:bg-orange-700"
                 >
-                    Login
+                    Iniciar sesión
                 </button>
             </form>
         </div>
