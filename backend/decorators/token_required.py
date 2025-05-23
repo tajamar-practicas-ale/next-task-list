@@ -1,7 +1,7 @@
 import jwt
 from functools import wraps
 from flask import request, jsonify, current_app
-from models.datastore import DataStore
+from managers.auth import AuthManager
 
 def token_required(f):
     """Decorador para proteger las rutas que requieren autenticación mediante JWT."""
@@ -16,7 +16,7 @@ def token_required(f):
         try:
             # Decodificar el token usando la clave secreta
             payload = jwt.decode(token, current_app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
-            user = DataStore.get_user(payload['username'])  # Obtener el usuario usando el payload del token
+            user = AuthManager.get_user(payload['username'])  # Obtener el usuario usando el payload del token
         except jwt.ExpiredSignatureError:
             return jsonify({'error': 'Token has expired'}), 401
         except jwt.InvalidTokenError:

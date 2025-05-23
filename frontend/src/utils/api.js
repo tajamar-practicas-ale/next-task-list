@@ -2,7 +2,9 @@ import Cookie from 'js-cookie';
 
 const API_URL = 'http://localhost:5000/api';
 
-export const fetchApi = async (url, method = 'GET', body = null, token = null) => {
+const getToken = () => Cookie.get('token');
+
+export const fetchApi = async (url, method = 'GET', body = null, token = getToken()) => {
 
     const headers = {
         'Content-Type': 'application/json',
@@ -32,6 +34,29 @@ export const loginApi = async (username, password) => {
 
 export const registerApi = async (username, password) => {
     const res = await fetchApi('/register', 'POST', { username, password });
+    return res.message;
+};
+
+export const getUsersApi = async (passedToken) => {
+    const token = passedToken || Cookie.get('token');
+    try {
+        const res = await fetchApi('/users', 'GET', null, token);  // Verifica que la llamada sea correcta
+        console.log('Usuarios obtenidos desde la API:', res);  // Ver respuesta completa
+
+        if (!Array.isArray(res)) {
+            console.error('Error: La respuesta de usuarios no es un array', res);
+        }
+
+        return res;
+    } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+        throw error;
+    }
+
+}
+
+export const deleteUserApi = async (user_id) => {
+    const res = await fetchApi(`/users/${user_id}`, 'DELETE');
     return res.message;
 };
 

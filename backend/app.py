@@ -4,15 +4,24 @@ from flask_cors import CORS
 from managers.auth import AuthManager
 from managers.task import TaskManager
 from decorators.token_required import token_required
+from decorators.admin_required import admin_required
 from utils.jwt import generate_token  # Importamos la función para generar el token
+from models.user import db, User
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+# CORS
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Configuración del JWT
 app.config['JWT_SECRET_KEY'] = 'mysecretkey'  # Clave secreta para firmar el token
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)  # Tiempo de expiración del token
+
+# Inicialización de la base de datos
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
 
 # Ruta para registrar un nuevo usuario
 @app.route('/api/register', methods=['POST'])
@@ -45,6 +54,44 @@ def login():
             return jsonify({'message': 'Credenciales incorrectas'}), 401
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+# Ruta para eliminar a un usuario (Desde el admin)
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+@token_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({'message': f'Usuario {user.username} eliminado'}), 200
+
+# Ruta para obtener todos los usuarios (Desde el admin)
+@app.route('/api/users', methods=['GET'])
+@token_required  # Ruta protegida con el decorador que valida el token
+@admin_required
+def get_users(current_user):
+    try:
+        print(f"Usuario admin autenticado: {current_user.username}")  # Depuración
+
+        # Obtener todos los usuarios desde la base de datos
+        users = User.query.all()
+
+        # Serializar usuarios (sin contraseñas u otra info sensible)
+        serialized_users = [
+            {
+                'id': user.id,
+                'username': user.username,
+                'is_admin': user.is_admin
+            } for user in users
+        ]
+
+        return jsonify(serialized_users), 200
+
+    except Exception as e:
+        print(f"Error al obtener usuarios: {str(e)}")  # Depuración
+        return jsonify({'error': str(e)}), 500
 
 # Ruta para obtener las tareas del usuario autenticado
 @app.route('/api/tasks', methods=['GET'])
@@ -67,4 +114,13 @@ def add_task(current_user):
     return jsonify(vars(task)), 201
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', password='admin123', role='admin')  # Asegúrate de que tu modelo tenga el campo 'role'
+            db.session.add(admin)
+            db.session.commit()
+            print('Usuario admin creado.')
+
     app.run(debug=True)  
