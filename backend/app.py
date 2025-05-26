@@ -7,6 +7,7 @@ from decorators.token_required import token_required
 from decorators.admin_required import admin_required
 from utils.jwt import generate_token  # Importamos la función para generar el token
 from models.user import db, User
+from utils.exceptions import AuthError
 
 app = Flask(__name__)
 
@@ -64,7 +65,7 @@ def login():
 @app.route('/api/users/<int:user_id>', methods=['DELETE'])
 @token_required
 @admin_required
-def delete_user(user_id):
+def delete_user(current_user, user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'Usuario no encontrado'}), 404
@@ -100,14 +101,20 @@ def get_users(current_user):
 
 # Ruta para obtener las tareas del usuario autenticado
 @app.route('/api/tasks', methods=['GET'])
-@token_required  # Ruta protegida con el decorador que valida el token
+@token_required
 def get_tasks(current_user):
     try:
-        print(f"Usuario autenticado: {current_user.username}")
-        tasks = TaskManager.get_tasks(current_user)
-        return jsonify([vars(t) for t in tasks])
+        tasks = TaskManager.get_tasks(current_user)  # Devuelve lista de objetos Task
+        tasks_response = [
+            {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description
+            }
+            for task in tasks if task.user_id == current_user.username
+        ]
+        return jsonify(tasks_response)
     except Exception as e:
-        print(f"Error al obtener tareas: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # Ruta para agregar una nueva tarea

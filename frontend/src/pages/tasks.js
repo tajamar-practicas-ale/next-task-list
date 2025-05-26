@@ -16,9 +16,39 @@ const Tasks = ({ tasks, users }) => {
     console.log("User en <Tasks />:", user);
 
     useEffect(() => {
-        console.log('Tareas iniciales:', tasks);
-        console.log('Usuarios:', users);
-    }, [user, router]);
+        // Función asíncrona para obtener tareas y usuarios según el rol
+        const fetchData = async () => {
+            try {
+                // Obtener el token desde las cookies
+                const token = Cookie.get('token');
+
+                // Si no hay token (por ejemplo, después de logout), no hacer nada y evitar errores
+                if (!token) return;
+
+                // Obtener las tareas del usuario autenticado con el token
+                const tasks = await getTasksApi(token);
+                // Actualizar el estado local con la lista de tareas recibida
+                setTaskList(tasks);
+
+                // Si el usuario es admin, también obtener la lista de usuarios
+                if (user?.role === 'admin') {
+                    const users = await getUsersApi(token);
+                    // Actualizar el estado local con la lista de usuarios
+                    setUserList(users);
+                } else {
+                    // Si no es admin, limpiar la lista de usuarios para que no se muestre nada
+                    setUserList([]);
+                }
+            } catch (error) {
+                // En caso de error al obtener datos, mostrarlo en consola para debugging
+                console.error('Error al obtener datos:', error);
+            }
+        };
+
+        // Ejecutar la función asíncrona definida arriba
+        fetchData();
+        // Ejecutar cada vez que cambie el usuario (login, logout o cambio de rol)
+    }, [user]);
 
     const handleAddTask = async (newTask) => {
         try {
@@ -33,9 +63,18 @@ const Tasks = ({ tasks, users }) => {
         }
     };
 
-    const handleDeleteUser = (id) => {
-        deleteUserApi(id);
-    }
+    const handleDeleteUser = async (id) => {
+        try {
+            const token = Cookie.get('token');
+            if (!token) throw new Error('Token no encontrado');
+
+            await deleteUserApi(id, token);
+            setUserList((prev) => prev.filter((user) => user.id !== id));  // Actualizar listado tras eliminación
+        } catch (error) {
+            console.error('Error al eliminar usuario:', error);
+        }
+    };
+
 
     return (
         <div className="container mx-auto">
