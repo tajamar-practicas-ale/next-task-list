@@ -8,15 +8,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class AuthManager:
     @staticmethod
     def register(username, password):
-        # Verificar si el usuario ya existe
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             raise AuthError("El usuario ya existe.")
 
-        # Hashear la contraseña antes de almacenarla
-        hashed_password = generate_password_hash(password)
-        user = User(username=username, password=hashed_password)
-
+        user = User(username=username, password=password, role='user')  # 👈 Pasamos la contraseña sin hashear
         db.session.add(user)
         db.session.commit()
         return user
@@ -24,14 +20,17 @@ class AuthManager:
     @staticmethod
     def login(username, password):
         user = User.query.filter_by(username=username).first()
-        if not user or not check_password_hash(user.password, password):
+        if not user or not user.check_password(password):
             raise AuthError("Credenciales inválidas.")
 
         payload = {
             'username': user.username,
+            "role": user.role, 
             'exp': datetime.datetime.utcnow() + current_app.config['JWT_ACCESS_TOKEN_EXPIRES']
         }
-        return jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], algorithm='HS256')
+        token = jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], algorithm='HS256')
+        return token, user
+
 
     @staticmethod
     def decode_token(token):

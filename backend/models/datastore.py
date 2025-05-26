@@ -15,5 +15,5 @@ class DataStore:
         cls.tasks[task.id] = task
 
     @classmethod
-    def get_tasks_by_user(cls, user_id):
-        return [task for task in cls.tasks.values() if task.user_id == user_id]
+    def get_tasks_by_user(cls, username):
+        return [task for task in cls.tasks.values() if task.user_id == username]

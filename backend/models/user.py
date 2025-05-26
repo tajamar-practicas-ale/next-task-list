@@ -9,7 +9,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(10), default='user')  # Puede ser 'user' o 'admin'
+    role = db.Column(db.String(10), default='user', nullable=False)  # Puede ser 'user' o 'admin'
 
     def __init__(self, username, password, role='user'):
         self.username = username

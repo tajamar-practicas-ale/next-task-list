@@ -13,6 +13,8 @@ const Tasks = ({ tasks, users }) => {
     const [userList, setUserList] = useState(users);
     const router = useRouter();
 
+    console.log("User en <Tasks />:", user);
+
     useEffect(() => {
         console.log('Tareas iniciales:', tasks);
         console.log('Usuarios:', users);
@@ -44,11 +46,9 @@ const Tasks = ({ tasks, users }) => {
             </div> */}
             <TaskForm onSubmit={handleAddTask} />
             <TaskList tasks={taskList} />
-            {users.is_admin ? (
+            {user?.role === 'admin' ? (
                 <UsersList onDelete={handleDeleteUser} users={userList} />
-            ) : (
-                <></>
-            )}
+            ) : null}
         </div>
     );
 };

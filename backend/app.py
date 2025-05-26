@@ -31,6 +31,8 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
+    print("Datos recibidos:", data)  # 🔍 LOG
+
     if not username or not password:
         return jsonify({'error': 'Usuario y contraseña requerida'}), 400
 
@@ -38,22 +40,25 @@ def register():
         user = AuthManager.register(username, password)
         return jsonify({'message': 'Usuario creado correctamente'}), 201
     except Exception as e:
+        print("Error en el registro:", str(e))  # 🔍 LOG
         return jsonify({'error': str(e)}), 400
+
 
 
 # Ruta para hacer login y obtener un token JWT
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
     try:
-        # Verificar las credenciales
-        if AuthManager.login(data['username'], data['password']):
-            token = generate_token(data['username'])  # Generar el token JWT
-            return jsonify({'token': token}), 200
-        else:
-            return jsonify({'message': 'Credenciales incorrectas'}), 401
+        token, user = AuthManager.login(username, password)
+        return jsonify({'token': token, 'username': user.username, 'role': user.role}), 200
+    except AuthError as e:
+        return jsonify({'error': str(e)}), 401
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
     
 # Ruta para eliminar a un usuario (Desde el admin)
 @app.route('/api/users/<int:user_id>', methods=['DELETE'])
@@ -83,7 +88,7 @@ def get_users(current_user):
             {
                 'id': user.id,
                 'username': user.username,
-                'is_admin': user.is_admin
+                'is_admin': user.role == 'admin'
             } for user in users
         ]
 
@@ -98,11 +103,11 @@ def get_users(current_user):
 @token_required  # Ruta protegida con el decorador que valida el token
 def get_tasks(current_user):
     try:
-        print(f"Usuario autenticado: {current_user.username}")  # Depuración
+        print(f"Usuario autenticado: {current_user.username}")
         tasks = TaskManager.get_tasks(current_user)
         return jsonify([vars(t) for t in tasks])
     except Exception as e:
-        print(f"Error al obtener tareas: {str(e)}")  # Depuración del error
+        print(f"Error al obtener tareas: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # Ruta para agregar una nueva tarea
@@ -112,6 +117,15 @@ def add_task(current_user):
     data = request.get_json()
     task = TaskManager.add_task(current_user, data['title'], data['description'])
     return jsonify(vars(task)), 201
+
+@app.route('/api/debug/users')
+def debug_users():
+    users = User.query.all()
+    return jsonify([
+        {'id': u.id, 'username': u.username, 'password': u.password, 'role': u.role}
+        for u in users
+    ])
+
 
 if __name__ == '__main__':
     with app.app_context():

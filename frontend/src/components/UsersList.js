@@ -1,6 +1,6 @@
 import React from 'react'
 
-const UsersList = ({ handleDeleteUser, users }) => {
+const UsersList = ({ onDelete, users }) => {
 
     return (
         <div className="mt-6">
@@ -10,7 +10,7 @@ const UsersList = ({ handleDeleteUser, users }) => {
                     <li key={index} className="flex w-[60%] mx-auto justify-between rounded-2xl p-4 border">
                         <div className="flex justify-evenly">
                             <h3 className="font-bold text-lg">{user.username}</h3>
-                            <button className='bg-red-500 p-2 text-white rounded-lg' onClick={handleDeleteUser(user.id)}>Eliminar</button>
+                            <button className='bg-red-500 p-2 text-white rounded-lg' onClick={onDelete(user.id)}>Eliminar</button>
                         </div>
                     </li>
                 ))}

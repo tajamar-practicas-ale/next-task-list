@@ -2,10 +2,11 @@ import jwt
 import datetime
 from flask import current_app
 
-def generate_token(username):
+def generate_token(user):
     """Genera un token JWT con el nombre de usuario y fecha de expiración."""
     payload = {
-        'username': username,
+        'username': user.username,
+        "role": user.role, 
         'exp': datetime.datetime.utcnow() + current_app.config['JWT_ACCESS_TOKEN_EXPIRES']  # Expiración del token
     }
     

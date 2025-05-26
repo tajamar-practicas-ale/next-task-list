@@ -5,7 +5,6 @@ const API_URL = 'http://localhost:5000/api';
 const getToken = () => Cookie.get('token');
 
 export const fetchApi = async (url, method = 'GET', body = null, token = getToken()) => {
-
     const headers = {
         'Content-Type': 'application/json',
     };
@@ -21,11 +20,19 @@ export const fetchApi = async (url, method = 'GET', body = null, token = getToke
     });
 
     if (!res.ok) {
-        throw new Error('Error en la solicitud');
+        let errorMessage = 'Error en la solicitud';
+        try {
+            const errorData = await res.json();
+            errorMessage = errorData.message || JSON.stringify(errorData);
+        } catch {
+            // fallback si no puede parsear JSON
+        }
+        throw new Error(errorMessage);
     }
 
     return res.json();
 };
+
 
 export const loginApi = async (username, password) => {
     const res = await fetchApi('/login', 'POST', { username, password });

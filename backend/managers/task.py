@@ -1,12 +1,13 @@
 from models.task import Task
+from models.datastore import DataStore
 
 class TaskManager:
     @staticmethod
     def get_tasks(user):
-        return user.tasks
+        return DataStore.get_tasks_by_user(user.username)
 
     @staticmethod
     def add_task(user, title, description):
         task = Task(title, description, user.username)
-        user.tasks.append(task)
+        DataStore.add_task(task)
         return task
